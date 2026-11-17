@@ -1,0 +1,142 @@
+{{ header }}{{ column_left }}
+<div id="content" class="up-app">
+{% include 'extension/shipping/ukrposhta_style.twig' %}
+<div class="container-fluid up-top">
+  <div class="up-top-row">
+    <div>
+      <h1>{{ text_cn }} <span>2.0</span></h1>
+      <div class="up-crumbs"><a href="{{ settings }}">{{ heading_title }}</a> \u203a {{ text_cn }}</div>
+    </div>
+    <div class="up-actions">
+      <div class="up-lang">
+        <a href="{{ lang_uk }}" class="{% if ui_lang == 'uk' %}is-on{% endif %}">\u0423\u041a\u0420</a>
+        <a href="{{ lang_ru }}" class="{% if ui_lang == 'ru' %}is-on{% endif %}">\u0420\u0423\u0421</a>
+      </div>
+      <a class="up-btn up-btn-black" href="{{ create }}"><i class="fa fa-plus"></i> {{ text_cn_new }}</a>
+      <a class="up-btn" href="{{ settings }}"><i class="fa fa-reply"></i></a>
+    </div>
+  </div>
+</div>
+<div class="container-fluid up-wrap">
+  <div id="up-alert"></div>
+  <div class="up-card">
+    <form method="post" action="{{ action }}" class="up-grid">
+      <div class="up-field"><label>{{ entry_filter_order }}</label><input class="up-input" name="filter_order_id" value="{{ filter.filter_order_id }}"/></div>
+      <div class="up-field"><label>{{ entry_filter_barcode }}</label><input class="up-input" name="filter_barcode" value="{{ filter.filter_barcode }}"/></div>
+      <div class="up-field"><label>{{ entry_filter_status }}</label><input class="up-input" name="filter_status" value="{{ filter.filter_status }}"/></div>
+      <div class="up-field"><label>&nbsp;</label><button class="up-btn up-btn-black" type="submit">{{ button_filter }}</button></div>
+    </form>
+  </div>
+  <div class="up-card">
+    <h2>{{ text_groups }}</h2>
+    <div class="up-grid">
+      <div class="up-field"><label>{{ entry_group_name }}</label><input class="up-input" id="up-group-name" placeholder="{{ 'now'|date('Y-m-d') }}"/></div>
+      <div class="up-field"><label>{{ entry_group_type }}</label>
+        <select class="up-input" id="up-group-type"><option value="EXPRESS">EXPRESS</option><option value="STANDARD">STANDARD</option></select>
+      </div>
+    </div>
+    <p>
+      <button type="button" class="up-btn" id="up-group-create">{{ button_group }}</button>
+      <select class="up-input" id="up-group-id" style="max-width:280px; display:inline-block;">
+        {% for group in groups %}
+        <option value="{{ group.group_id }}">{{ group.name }} ({{ group.type }})</option>
+        {% endfor %}
+      </select>
+      <button type="button" class="up-btn" id="up-group-add">{{ button_attach }}</button>
+      <a class="up-btn" id="up-form" target="_blank" href="#">{{ button_form }}</a>
+      <a class="up-btn" id="up-gsticker" target="_blank" href="#">{{ button_sticker }}</a>
+    </p>
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover">
+        <thead>
+          <tr>
+            <td></td>
+            <td>{{ column_order }}</td>
+            <td>{{ column_barcode }}</td>
+            <td>{{ column_recipient }}</td>
+            <td>{{ column_route }}</td>
+            <td>{{ column_type }}</td>
+            <td>{{ column_price }}</td>
+            <td>{{ column_status }}</td>
+            <td>{{ column_date }}</td>
+            <td></td>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in shipments %}
+          <tr>
+            <td>{% if row.uuid %}<input type="checkbox" class="up-pick" value="{{ row.shipment_id }}"/>{% endif %}</td>
+            <td>{% if row.order_id %}{{ row.order_id }}{% else %}\u2014{% endif %}</td>
+            <td>{% if row.barcode %}<a href="https://track.ukrposhta.ua/tracking_UA.html?barcode={{ row.barcode }}" target="_blank">{{ row.barcode }}</a>{% elseif row.is_draft %}{{ text_draft }}{% endif %}</td>
+            <td>{{ row.recipient_name }}<br/><small>{{ row.recipient_phone }}</small></td>
+            <td>{{ row.city_name }} {{ row.postcode }}<br/><small>{{ row.office_name }} {{ row.street }} {{ row.house }}</small></td>
+            <td>{{ row.type }} / {{ row.delivery_type }}</td>
+            <td>{{ row.delivery_price }}</td>
+            <td>{{ row.status }}</td>
+            <td>{{ row.date_added }}</td>
+            <td class="text-right" style="white-space:nowrap;">
+              <a class="btn btn-default btn-xs" href="{{ edit_base }}&shipment_id={{ row.shipment_id }}">{{ text_open }}</a>
+              {% if row.uuid %}
+              <a class="btn btn-info btn-xs" target="_blank" href="{{ sticker_url }}&shipment_id={{ row.shipment_id }}">{{ button_sticker }}</a>
+              <button type="button" class="btn btn-default btn-xs up-track" data-id="{{ row.shipment_id }}">{{ button_track }}</button>
+              {% endif %}
+              <button type="button" class="btn btn-danger btn-xs up-del" data-id="{{ row.shipment_id }}">{{ button_delete }}</button>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="10">{{ text_no_results }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if pages > 1 %}
+    <p>
+      {% for item in pagination %}
+      {% if item.n == page %}<strong>{{ item.n }}</strong>{% else %}<a href="{{ item.href }}">{{ item.n }}</a>{% endif %}
+      {% endfor %}
+    </p>
+    {% endif %}
+  </div>
+</div>
+</div>
+<script>
+(function () {
+  var alertBox = document.getElementById('up-alert');
+  function note(json) {
+    alertBox.innerHTML = '<div class="alert ' + (json.error ? 'alert-danger' : 'alert-success') + '">' + (json.error || json.success || '') + '</div>';
+    if (json.success) setTimeout(function () { location.reload(); }, 700);
+  }
+  function post(url, body, cb) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', url.replace(/&/g, '&'));
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.onload = function () { var json = {}; try { json = JSON.parse(xhr.responseText); } catch (e) {} cb(json); };
+    xhr.send(body);
+  }
+  document.getElementById('up-group-create').onclick = function () {
+    post('{{ group_url|e('js') }}', 'name=' + encodeURIComponent(document.getElementById('up-group-name').value) + '&type=' + encodeURIComponent(document.getElementById('up-group-type').value), note);
+  };
+  document.getElementById('up-group-add').onclick = function () {
+    var ids = [];
+    var boxes = document.querySelectorAll('.up-pick:checked');
+    for (var i = 0; i < boxes.length; i++) ids.push('selected[]=' + encodeURIComponent(boxes[i].value));
+    post('{{ attach_url|e('js') }}', 'group_id=' + encodeURIComponent(document.getElementById('up-group-id').value) + '&' + ids.join('&'), note);
+  };
+  function groupHref(base) {
+    var id = document.getElementById('up-group-id').value;
+    return base.replace(/&/g, '&') + '&group_id=' + id;
+  }
+  document.getElementById('up-form').onclick = function () { this.href = groupHref('{{ form_url|e('js') }}'); };
+  document.getElementById('up-gsticker').onclick = function () { this.href = groupHref('{{ gsticker_url|e('js') }}'); };
+  var tracks = document.querySelectorAll('.up-track');
+  for (var t = 0; t < tracks.length; t++) tracks[t].onclick = function () {
+    post('{{ track_url|e('js') }}&ajax=1&shipment_id=' + this.getAttribute('data-id'), '', note);
+  };
+  var dels = document.querySelectorAll('.up-del');
+  for (var d = 0; d < dels.length; d++) dels[d].onclick = function () {
+    if (!confirm('{{ text_confirm_delete|e('js') }}')) return;
+    post('{{ delete_url|e('js') }}&shipment_id=' + this.getAttribute('data-id'), '', note);
+  };
+})();
+</script>
+{{ footer }}
