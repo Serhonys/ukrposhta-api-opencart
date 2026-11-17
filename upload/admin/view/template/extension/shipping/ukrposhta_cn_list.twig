@@ -5,12 +5,12 @@
   <div class="up-top-row">
     <div>
       <h1>{{ text_cn }} <span>2.0</span></h1>
-      <div class="up-crumbs"><a href="{{ settings }}">{{ heading_title }}</a> \u203a {{ text_cn }}</div>
+      <div class="up-crumbs"><a href="{{ settings }}">{{ heading_title }}</a> › {{ text_cn }}</div>
     </div>
     <div class="up-actions">
       <div class="up-lang">
-        <a href="{{ lang_uk }}" class="{% if ui_lang == 'uk' %}is-on{% endif %}">\u0423\u041a\u0420</a>
-        <a href="{{ lang_ru }}" class="{% if ui_lang == 'ru' %}is-on{% endif %}">\u0420\u0423\u0421</a>
+        <a href="{{ lang_uk }}" class="{% if ui_lang == 'uk' %}is-on{% endif %}">УКР</a>
+        <a href="{{ lang_ru }}" class="{% if ui_lang == 'ru' %}is-on{% endif %}">РУС</a>
       </div>
       <a class="up-btn up-btn-black" href="{{ create }}"><i class="fa fa-plus"></i> {{ text_cn_new }}</a>
       <a class="up-btn" href="{{ settings }}"><i class="fa fa-reply"></i></a>
@@ -66,7 +66,7 @@
           {% for row in shipments %}
           <tr>
             <td>{% if row.uuid %}<input type="checkbox" class="up-pick" value="{{ row.shipment_id }}"/>{% endif %}</td>
-            <td>{% if row.order_id %}{{ row.order_id }}{% else %}\u2014{% endif %}</td>
+            <td>{% if row.order_id %}{{ row.order_id }}{% else %}—{% endif %}</td>
             <td>{% if row.barcode %}<a href="https://track.ukrposhta.ua/tracking_UA.html?barcode={{ row.barcode }}" target="_blank">{{ row.barcode }}</a>{% elseif row.is_draft %}{{ text_draft }}{% endif %}</td>
             <td>{{ row.recipient_name }}<br/><small>{{ row.recipient_phone }}</small></td>
             <td>{{ row.city_name }} {{ row.postcode }}<br/><small>{{ row.office_name }} {{ row.street }} {{ row.house }}</small></td>

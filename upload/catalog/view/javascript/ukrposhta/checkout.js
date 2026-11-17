@@ -44,7 +44,7 @@
         var $label = $(this).closest('label');
         if (!$label.length) $label = $(this).parent();
         $label.contents().filter(function () { return this.nodeType === 3; }).remove();
-        $label.append(document.createTextNode(' ' + quotes[key].title + ' \u2014 ' + quotes[key].text));
+        $label.append(document.createTextNode(' ' + quotes[key].title + ' — ' + quotes[key].text));
       });
     });
   }
@@ -68,7 +68,7 @@
     if (!cityId || !cfg.officesUrl) return;
     $.getJSON(cfg.officesUrl, { city_id: cityId }, function (rows) {
       var $sel = $('#ukrposhta-office').empty();
-      $sel.append($('<option>').val('').text(cfg.selectOffice || '\u2014'));
+      $sel.append($('<option>').val('').text(cfg.selectOffice || '—'));
       (rows || []).forEach(function (row) {
         var $opt = $('<option>').val(row.office_id).text(row.label).attr('data-postcode', row.postcode).attr('data-name', row.name);
         if (selectedOffice && selectedOffice === String(row.office_id)) $opt.prop('selected', true);
