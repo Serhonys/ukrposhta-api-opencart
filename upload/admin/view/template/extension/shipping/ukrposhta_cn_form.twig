@@ -1,0 +1,169 @@
+{{ header }}{{ column_left }}
+<div id="content" class="up-app">
+{% include 'extension/shipping/ukrposhta_style.twig' %}
+<div class="container-fluid up-top">
+  <div class="up-top-row">
+    <div>
+      <h1>{% if cn.barcode %}{{ cn.barcode }}{% else %}{{ text_cn_new }}{% endif %} <span>2.0</span></h1>
+      <div class="up-crumbs"><a href="{{ settings }}">{{ heading_title }}</a> › <a href="{{ back }}">{{ text_cn }}</a></div>
+    </div>
+    <div class="up-actions">
+      <div class="up-lang">
+        <a href="{{ lang_uk }}" class="{% if ui_lang == 'uk' %}is-on{% endif %}">УКР</a>
+        <a href="{{ lang_ru }}" class="{% if ui_lang == 'ru' %}is-on{% endif %}">РУС</a>
+      </div>
+      {% if not locked %}
+      <button class="up-btn" type="submit" form="form-cn" name="draft" value="1">{{ button_draft }}</button>
+      <button class="up-btn up-btn-black" type="submit" form="form-cn" name="create" value="1">{{ button_create }}</button>
+      {% else %}
+      <a class="up-btn" target="_blank" href="{{ sticker_url }}">{{ button_sticker }}</a>
+      <a class="up-btn" href="{{ track_url }}">{{ button_track }}</a>
+      {% endif %}
+      <a class="up-btn" href="{{ back }}"><i class="fa fa-reply"></i></a>
+    </div>
+  </div>
+</div>
+<div class="container-fluid up-wrap">
+  {% if error_warning %}<div class="alert alert-danger">{{ error_warning }}</div>{% endif %}
+  {% if success %}<div class="alert alert-success">{{ success }}</div>{% endif %}
+  {% if locked %}<div class="alert alert-info">{{ text_locked }} {{ cn.status }}</div>{% endif %}
+  <form id="form-cn" action="{{ action }}" method="post" class="up-card">
+    <p class="help">{{ help_cn }}</p>
+    <div class="up-grid">
+      <div class="up-field"><label>{{ entry_order_id }}</label><input class="up-input" name="order_id" value="{{ cn.order_id|default('') }}" {% if locked %}readonly{% endif %}/></div>
+      <div class="up-field"><label>{{ entry_type }}</label>
+        <select class="up-input" name="type" {% if locked %}disabled{% endif %}><option value="EXPRESS" {% if cn.type|default('EXPRESS') == 'EXPRESS' %}selected{% endif %}>EXPRESS</option><option value="STANDARD" {% if cn.type|default('') == 'STANDARD' %}selected{% endif %}>STANDARD</option></select>
+      </div>
+      <div class="up-field"><label>{{ entry_delivery }}</label>
+        <select class="up-input" name="delivery_type" id="up-delivery" {% if locked %}disabled{% endif %}><option value="W2W" {% if cn.delivery_type|default('W2W') == 'W2W' %}selected{% endif %}>{{ text_w2w }}</option><option value="W2D" {% if cn.delivery_type|default('') == 'W2D' %}selected{% endif %}>{{ text_w2d }}</option></select>
+      </div>
+      <div class="up-field"><label>{{ entry_last }}</label><input class="up-input" name="last_name" value="{{ cn.last_name|default('') }}" {% if locked %}readonly{% endif %}/></div>
+      <div class="up-field"><label>{{ entry_first }}</label><input class="up-input" name="first_name" value="{{ cn.first_name|default('') }}" {% if locked %}readonly{% endif %}/></div>
+      <div class="up-field"><label>{{ entry_middle }}</label><input class="up-input" name="middle_name" value="{{ cn.middle_name|default('') }}" {% if locked %}readonly{% endif %}/></div>
+      <div class="up-field"><label>{{ entry_phone }}</label><input class="up-input" name="recipient_phone" value="{{ cn.recipient_phone|default('') }}" {% if locked %}readonly{% endif %}/></div>
+      <div class="up-field"><label>{{ entry_email }}</label><input class="up-input" name="recipient_email" value="{{ cn.recipient_email|default('') }}" {% if locked %}readonly{% endif %}/></div>
+      <div class="up-field"><label>{{ entry_city }}</label>
+        <input class="up-input" id="up-city" name="city_name" value="{{ cn.city_name|default('') }}" autocomplete="off" {% if locked %}readonly{% endif %}/>
+        <input type="hidden" name="city_id" id="up-city-id" value="{{ cn.city_id|default('') }}"/>
+        <div id="up-city-box" class="list-group" style="position:relative; z-index:5;"></div>
+      </div>
+      <div class="up-field"><label>{{ entry_region }}</label><input class="up-input" name="region_name" id="up-region" value="{{ cn.region_name|default('') }}" {% if locked %}readonly{% endif %}/></div>
+      <div class="up-field" id="up-office-field"><label>{{ entry_office }}</label>
+        <select class="up-input" name="office_id" id="up-office" {% if locked %}disabled{% endif %}><option value="{{ cn.office_id|default('') }}">{{ cn.office_name|default(text_select_office|default('—')) }}</option></select>
+        <input type="hidden" name="office_name" id="up-office-name" value="{{ cn.office_name|default('') }}"/>
+      </div>
+      <div class="up-field"><label>{{ entry_postcode }}</label><input class="up-input" name="postcode" id="up-postcode" value="{{ cn.postcode|default('') }}" {% if locked %}readonly{% endif %}/></div>
+      <div class="up-field up-door"><label>{{ entry_street }}</label><input class="up-input" name="street" id="up-street" value="{{ cn.street|default('') }}" autocomplete="off" {% if locked %}readonly{% endif %}/><div id="up-street-box" class="list-group"></div></div>
+      <div class="up-field up-door"><label>{{ entry_house }}</label><input class="up-input" name="house" value="{{ cn.house|default('') }}" {% if locked %}readonly{% endif %}/></div>
+      <div class="up-field up-door"><label>{{ entry_apartment }}</label><input class="up-input" name="apartment" value="{{ cn.apartment|default('') }}" {% if locked %}readonly{% endif %}/></div>
+      <div class="up-field"><label>{{ entry_weight }}</label><input class="up-input" name="weight" value="{{ cn.weight|default(500) }}" {% if locked %}readonly{% endif %}/></div>
+      <div class="up-field"><label>{{ entry_length }}</label><input class="up-input" name="length" value="{{ cn.length|default(30) }}" {% if locked %}readonly{% endif %}/></div>
+      <div class="up-field"><label>{{ entry_width }}</label><input class="up-input" name="width" value="{{ cn.width|default(20) }}" {% if locked %}readonly{% endif %}/></div>
+      <div class="up-field"><label>{{ entry_height }}</label><input class="up-input" name="height" value="{{ cn.height|default(10) }}" {% if locked %}readonly{% endif %}/></div>
+      <div class="up-field"><label>{{ entry_declared }}</label><input class="up-input" name="declared_price" value="{{ cn.declared_price|default(0) }}" {% if locked %}readonly{% endif %}/></div>
+      <div class="up-field"><label>{{ entry_postpay_sum }}</label><input class="up-input" name="postpay" value="{{ cn.postpay|default(0) }}" {% if locked %}readonly{% endif %}/></div>
+      <div class="up-field"><label>{{ entry_comment }}</label><input class="up-input" name="comment" value="{{ cn.comment|default('') }}" {% if locked %}readonly{% endif %}/></div>
+      <div class="up-field"><label>{{ entry_paid }}</label><select class="up-input" name="paid_by_recipient" {% if locked %}disabled{% endif %}><option value="1" {% if cn.paid_by_recipient|default(0) %}selected{% endif %}>{{ text_yes }}</option><option value="0" {% if not cn.paid_by_recipient|default(0) %}selected{% endif %}>{{ text_no }}</option></select></div>
+      <div class="up-field"><label>{{ entry_sms }}</label><select class="up-input" name="sms" {% if locked %}disabled{% endif %}><option value="1" {% if cn.sms|default(0) %}selected{% endif %}>{{ text_yes }}</option><option value="0" {% if not cn.sms|default(0) %}selected{% endif %}>{{ text_no }}</option></select></div>
+      <div class="up-field"><label>{{ entry_check }}</label><select class="up-input" name="check_on_delivery" {% if locked %}disabled{% endif %}><option value="1" {% if cn.check_on_delivery|default(0) %}selected{% endif %}>{{ text_yes }}</option><option value="0" {% if not cn.check_on_delivery|default(0) %}selected{% endif %}>{{ text_no }}</option></select></div>
+    </div>
+  </form>
+</div>
+</div>
+<script>
+(function () {
+  var citiesUrl = '{{ cities_url|e('js') }}';
+  var officesUrl = '{{ offices_url|e('js') }}';
+  var streetsUrl = '{{ streets_url|e('js') }}';
+  var locked = {{ locked ? 'true' : 'false' }};
+  function delivery() {
+    var door = document.getElementById('up-delivery').value === 'W2D';
+    var nodes = document.querySelectorAll('.up-door');
+    for (var i = 0; i < nodes.length; i++) nodes[i].style.display = door ? '' : 'none';
+    document.getElementById('up-office-field').style.display = door ? 'none' : '';
+  }
+  document.getElementById('up-delivery').addEventListener('change', delivery);
+  delivery();
+  if (locked) return;
+  var timer = null;
+  document.getElementById('up-city').addEventListener('input', function () {
+    var term = this.value;
+    clearTimeout(timer);
+    if (term.length < 2) return;
+    timer = setTimeout(function () {
+      fetch(citiesUrl.replace(/&/g, '&') + '&term=' + encodeURIComponent(term)).then(function (r) { return r.json(); }).then(function (rows) {
+        var box = document.getElementById('up-city-box');
+        box.innerHTML = '';
+        (rows || []).slice(0, 12).forEach(function (row) {
+          var a = document.createElement('a');
+          a.href = '#';
+          a.className = 'list-group-item';
+          a.textContent = row.label;
+          a.onclick = function (e) {
+            e.preventDefault();
+            document.getElementById('up-city').value = row.city_name;
+            document.getElementById('up-city-id').value = row.city_id;
+            document.getElementById('up-region').value = row.region_name || '';
+            box.innerHTML = '';
+            loadOffices(row.city_id);
+          };
+          box.appendChild(a);
+        });
+      });
+    }, 250);
+  });
+  function loadOffices(cityId) {
+    fetch(officesUrl.replace(/&/g, '&') + '&city_id=' + encodeURIComponent(cityId)).then(function (r) { return r.json(); }).then(function (rows) {
+      var sel = document.getElementById('up-office');
+      var current = sel.value;
+      sel.innerHTML = '';
+      (rows || []).forEach(function (row) {
+        var opt = document.createElement('option');
+        opt.value = row.office_id;
+        opt.textContent = row.label;
+        opt.setAttribute('data-postcode', row.postcode);
+        opt.setAttribute('data-name', row.name);
+        if (String(current) === String(row.office_id)) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      syncOffice();
+    });
+  }
+  function syncOffice() {
+    var sel = document.getElementById('up-office');
+    var opt = sel.options[sel.selectedIndex];
+    if (!opt) return;
+    document.getElementById('up-office-name').value = opt.getAttribute('data-name') || opt.textContent;
+    if (opt.getAttribute('data-postcode')) document.getElementById('up-postcode').value = opt.getAttribute('data-postcode');
+  }
+  document.getElementById('up-office').addEventListener('change', syncOffice);
+  var cityId = document.getElementById('up-city-id').value;
+  if (cityId) loadOffices(cityId);
+  var streetTimer = null;
+  document.getElementById('up-street').addEventListener('input', function () {
+    var term = this.value;
+    var city = document.getElementById('up-city-id').value;
+    clearTimeout(streetTimer);
+    if (!city || term.length < 2) return;
+    streetTimer = setTimeout(function () {
+      fetch(streetsUrl.replace(/&/g, '&') + '&city_id=' + encodeURIComponent(city) + '&term=' + encodeURIComponent(term)).then(function (r) { return r.json(); }).then(function (rows) {
+        var box = document.getElementById('up-street-box');
+        box.innerHTML = '';
+        (rows || []).slice(0, 12).forEach(function (row) {
+          var a = document.createElement('a');
+          a.href = '#';
+          a.className = 'list-group-item';
+          a.textContent = row.label;
+          a.onclick = function (e) {
+            e.preventDefault();
+            document.getElementById('up-street').value = row.name;
+            box.innerHTML = '';
+          };
+          box.appendChild(a);
+        });
+      });
+    }, 250);
+  });
+})();
+</script>
+{{ footer }}
