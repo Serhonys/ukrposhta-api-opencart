@@ -1,0 +1,66 @@
+<div class="panel panel-default" id="ukrposhta-order-panel">
+  <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-truck"></i> {{ heading_title }}</h3></div>
+  <div class="panel-body">
+    {% if order_data %}
+    <p>
+      <strong>{{ order_data.city_name }}</strong>{% if order_data.region_name %}, {{ order_data.region_name }}{% endif %}
+      {% if order_data.postcode %} — {{ order_data.postcode }}{% endif %}<br/>
+      {{ order_data.office_name }} {{ order_data.street }} {{ order_data.house }} {{ order_data.apartment }}
+    </p>
+    {% else %}
+    <p class="text-warning">{{ text_no_checkout }}</p>
+    {% endif %}
+    <p>
+      <a class="btn btn-default" href="{{ open }}">{{ text_cn_new }}</a>
+      <button type="button" class="btn btn-primary" id="button-ukrposhta-create">{{ button_create }}</button>
+    </p>
+    {% if shipments %}
+    <table class="table table-bordered">
+      <thead><tr><td>{{ column_barcode }}</td><td>{{ column_status }}</td><td>{{ column_price }}</td><td>{{ column_date }}</td><td></td></tr></thead>
+      <tbody>
+      {% for shipment in shipments %}
+      <tr>
+        <td>{% if shipment.barcode %}{{ shipment.barcode }}{% else %}{{ text_draft }}{% endif %}<br/><small>{{ shipment.type }} / {{ shipment.delivery_type }}</small></td>
+        <td>{{ shipment.status }}</td>
+        <td>{{ shipment.delivery_price }}</td>
+        <td>{{ shipment.date_added }}</td>
+        <td class="text-right">
+          <a class="btn btn-default btn-xs" href="{{ form_base }}&shipment_id={{ shipment.shipment_id }}">{{ text_open }}</a>
+          {% if shipment.uuid %}
+          <a class="btn btn-info btn-xs" target="_blank" href="{{ sticker_url }}&shipment_id={{ shipment.shipment_id }}">{{ button_sticker }}</a>
+          <button type="button" class="btn btn-default btn-xs up-track" data-id="{{ shipment.shipment_id }}">{{ button_track }}</button>
+          {% endif %}
+          <button type="button" class="btn btn-danger btn-xs up-del" data-id="{{ shipment.shipment_id }}">{{ button_delete }}</button>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+    <div id="ukrposhta-order-alert"></div>
+  </div>
+</div>
+<script>
+(function () {
+  function note(json) {
+    var box = document.getElementById('ukrposhta-order-alert');
+    box.innerHTML = '<div class="alert ' + (json.error ? 'alert-danger' : 'alert-success') + '">' + (json.error || json.success || '') + '</div>';
+    if (json.success) setTimeout(function () { location.reload(); }, 700);
+  }
+  function post(url) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', url.replace(/&/g, '&'));
+    xhr.onload = function () { var json = {}; try { json = JSON.parse(xhr.responseText); } catch (e) {} note(json); };
+    xhr.send();
+  }
+  var create = document.getElementById('button-ukrposhta-create');
+  if (create) create.onclick = function () { post('{{ create_url|e('js') }}'); };
+  var tracks = document.querySelectorAll('#ukrposhta-order-panel .up-track');
+  for (var i = 0; i < tracks.length; i++) tracks[i].onclick = function () { post('{{ track_url|e('js') }}&ajax=1&shipment_id=' + this.getAttribute('data-id')); };
+  var dels = document.querySelectorAll('#ukrposhta-order-panel .up-del');
+  for (var j = 0; j < dels.length; j++) dels[j].onclick = function () {
+    if (!confirm('{{ text_confirm_delete|e('js') }}')) return;
+    post('{{ delete_url|e('js') }}&shipment_id=' + this.getAttribute('data-id'));
+  };
+})();
+</script>

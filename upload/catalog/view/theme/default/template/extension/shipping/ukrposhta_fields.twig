@@ -1,0 +1,35 @@
+<div id="ukrposhta-fields" class="ukrposhta-fields" style="display:none;margin:15px 0;padding:12px;border:1px solid #e5e5e5;border-radius:8px;background:#fff;">
+  <div class="form-group">
+    <label for="ukrposhta-city">{{ text_city }}</label>
+    <input type="text" id="ukrposhta-city" class="form-control" placeholder="{{ text_select_city }}" autocomplete="off"/>
+    <input type="hidden" id="ukrposhta-city-id" value=""/>
+    <input type="hidden" id="ukrposhta-region" value=""/>
+    <div id="ukrposhta-city-suggest" class="list-group" style="position:relative;z-index:20;display:none;"></div>
+  </div>
+  <div class="form-group" id="ukrposhta-office-wrap">
+    <label for="ukrposhta-office">{{ text_office }}</label>
+    <select id="ukrposhta-office" class="form-control"><option value="">{{ text_select_office }}</option></select>
+  </div>
+  <div id="ukrposhta-address-wrap" style="display:none;">
+    <div class="form-group">
+      <label for="ukrposhta-street">{{ text_street }}</label>
+      <input type="text" id="ukrposhta-street" class="form-control" placeholder="{{ text_select_street }}" autocomplete="off"/>
+      <div id="ukrposhta-street-suggest" class="list-group" style="position:relative;z-index:20;display:none;"></div>
+    </div>
+    <div class="form-group"><label for="ukrposhta-house">{{ text_house }}</label><input type="text" id="ukrposhta-house" class="form-control"/></div>
+    <div class="form-group"><label for="ukrposhta-apartment">{{ text_apartment }}</label><input type="text" id="ukrposhta-apartment" class="form-control"/></div>
+  </div>
+  <div class="form-group"><label for="ukrposhta-postcode">{{ text_postcode }}</label><input type="text" id="ukrposhta-postcode" class="form-control"/></div>
+</div>
+<script>
+window.UKRPOSHTA_CFG = {{ cfg_json|raw }};
+if (window.UKRPOSHTA_CFG && window.UKRPOSHTA_CFG.selected) {
+  var upSelected = window.UKRPOSHTA_CFG.selected;
+  var upMap = { city_name: 'ukrposhta-city', city_id: 'ukrposhta-city-id', region_name: 'ukrposhta-region', postcode: 'ukrposhta-postcode', street: 'ukrposhta-street', house: 'ukrposhta-house', apartment: 'ukrposhta-apartment' };
+  Object.keys(upMap).forEach(function (key) {
+    var el = document.getElementById(upMap[key]);
+    if (el && upSelected[key]) el.value = upSelected[key];
+  });
+}
+{{ checkout_js|raw }}
+</script>

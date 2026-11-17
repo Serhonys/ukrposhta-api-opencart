@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+  <name>Ukrposhta API</name>
+  <code>ukrposhta_api</code>
+  <version>2.0.0</version>
+  <author>Ukrposhta</author>
+  <link>https://dev.ukrposhta.ua/documentation</link>
+
+  <file path="admin/controller/sale/order.php">
+    <operation error="skip">
+      <search><![CDATA[$this->response->setOutput($this->load->view('sale/order_info', $data));]]></search>
+      <add position="before"><![CDATA[
+		$data['ukrposhta_order'] = $this->load->controller('extension/shipping/ukrposhta/order');
+]]></add>
+    </operation>
+  </file>
+
+  <file path="admin/view/template/sale/order_info.twig">
+    <operation error="skip">
+      <search><![CDATA[{{ footer }}]]></search>
+      <add position="before"><![CDATA[
+{% if ukrposhta_order %}
+<div id="ukrposhta-order-inject">{{ ukrposhta_order }}</div>
+<script>
+$(function () {
+  var $box = $('#ukrposhta-order-inject');
+  var $panel = $box.find('#ukrposhta-order-panel');
+  if ($panel.length && $('#content .container-fluid').children('.panel').first().length) {
+    $('#content .container-fluid').children('.panel').first().after($panel);
+  }
+  $box.remove();
+});
+</script>
+{% endif %}
+]]></add>
+    </operation>
+  </file>
+
+  <file path="admin/controller/common/column_left.php">
+    <operation error="skip">
+      <search><![CDATA[return $this->load->view('common/column_left', $data);]]></search>
+      <add position="before"><![CDATA[
+		if ($this->user->hasPermission('access', 'extension/shipping/ukrposhta')) {
+			$up_name = 'Укрпошта';
+			$up_settings = 'Налаштування';
+			$up_cn = 'Накладні';
+			if (strpos((string)$this->config->get('config_admin_language'), 'ru') === 0) {
+				$up_name = 'Укрпочта';
+				$up_settings = 'Настройки';
+				$up_cn = 'Накладные';
+			}
+			$up_token = isset($this->session->data['user_token']) ? 'user_token=' . $this->session->data['user_token'] : 'token=' . (isset($this->session->data['token']) ? $this->session->data['token'] : '');
+			$data['menus'][] = array(
+				'id' => 'menu-ukrposhta',
+				'icon' => 'fa-truck',
+				'name' => $up_name,
+				'href' => '',
+				'children' => array(
+					array(
+						'name' => $up_settings,
+						'href' => $this->url->link('extension/shipping/ukrposhta', $up_token, true),
+						'children' => array()
+					),
+					array(
+						'name' => $up_cn,
+						'href' => $this->url->link('extension/shipping/ukrposhta/shipments', $up_token, true),
+						'children' => array()
+					)
+				)
+			);
+		}
+]]></add>
+    </operation>
+  </file>
+
+  <file path="catalog/controller/checkout/shipping_method.php">
+    <operation error="skip">
+      <search><![CDATA[$this->response->setOutput($this->load->view('checkout/shipping_method', $data));]]></search>
+      <add position="before"><![CDATA[
+		$data['ukrposhta_fields'] = $this->load->controller('extension/shipping/ukrposhta/fields');
+]]></add>
+    </operation>
+    <operation error="skip">
+      <search><![CDATA[if (!$json) {
+			$this->session->data['shipping_method'] = $this->session->data['shipping_methods'][$shipping[0]]['quote'][$shipping[1]];]]></search>
+      <add position="before"><![CDATA[
+		if (!$json && isset($this->request->post['shipping_method']) && strpos($this->request->post['shipping_method'], 'ukrposhta.') === 0) {
+			$up_valid = $this->load->controller('extension/shipping/ukrposhta/validateShipping');
+			if ($up_valid !== true) {
+				$json['error']['warning'] = is_string($up_valid) ? $up_valid : 'Ukrposhta';
+			}
+		}
+]]></add>
+    </operation>
+  </file>
+
+  <file path="catalog/view/theme/*/template/checkout/shipping_method.twig">
+    <operation error="skip">
+      <search><![CDATA[<div class="buttons">]]></search>
+      <add position="before"><![CDATA[
+{{ ukrposhta_fields }}
+]]></add>
+    </operation>
+  </file>
+
+  <file path="catalog/controller/checkout/confirm.php">
+    <operation error="skip">
+      <search><![CDATA[$this->session->data['order_id'] = $this->model_checkout_order->addOrder($order_data);]]></search>
+      <add position="after"><![CDATA[
+			$this->load->controller('extension/shipping/ukrposhta/persistOrder');
+]]></add>
+    </operation>
+  </file>
+</modification>
